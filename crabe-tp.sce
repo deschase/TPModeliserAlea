@@ -18,9 +18,10 @@ Max=25;
 
 // Dessiner la loi normale correspondante
 
-esp = sum(x*y)/1000;
-var = 1 /. (999) *(sum((x*y - esp)*(x*y - esp)));
-plot(normale(y,1,1))
+nbCrabes = 1000;
+esp = y * x / nbCrabes;
+var = ((y - esp) .* (y - esp)) * x / nbCrabes;
+plot(normale(y ,esp , var))
 
 // Tracer l'histogramme
 //plot(x)
