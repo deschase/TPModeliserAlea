@@ -104,24 +104,37 @@ endfunction;
 // Équations de prédiction
 // Renvoie la proba que Sn soit dans l'état i (Lemme 3)
 function [y]=Prediction(A,filt)
-  // A FAIRE
+  y = A'*filt
 endfunction;
 
 // Équations de filtrage
 // Renvoie la proba que Sn soit dans l'état i (Lemme 4)
 function [y]=Filtering(B,prev,base)
-  // A FAIRE
+  y = B(:,base).*prev/(B(:,base)'*prev)
 endfunction;
 
 // Équations de lissage
 function [y1]=Smooth1(y0,A,prev,filt)
-  // A FAIRE
+  y1 = filt.*(A*(y0./prev))
   // Deuxième équation de lissage du lemme 5
 endfunction;
 
 function [y2]=Smooth2(y1,A,prev,filt)
-  // A FAIRE
+  y2 = matrix(A.*(filt*(y1./prev)'),4,1)
   // Première équation de lissage du lemme 5
 endfunction;
+
+nbzone = 2
+nbiter = 1000
+
+adninit = lecture_adn('seq_lambda2.txt')
+Ainit = matrix([0.2;0.8;0.2;0.8],2,2)'
+Binit = matrix([0.25;0.25;0.25;0.25;0.25;0.25;0.25;0.25],4,2)'
+pinit = [0.5;0.5]
+
+// Resolution
+[region,Afinal,Bfinal] = result(adninit,nbzone,nbiter,Ainit,Binit,pinit)
+
+plot(1:length(adninit),region(1,:),col="blue")
 
 
