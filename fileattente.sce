@@ -42,11 +42,24 @@ function [X_t]=queue(lamb,mu,tpsmax)
     end
 endfunction
 
-function [dist] = distribution(t)
-    X_t = queue(1,2,t)
-    dist = 1/t * intg(0,t,X_t);
+function [dist] = distribution(n)
+    dist = 0;
+    if (X_t(2,i) == n) then
+        dist = dist + X_t(1,1)
+    end
+    for i =2:size(X_t(1,:),"c")
+        if (X_t(2,i) == n) then
+            dist = dist + X_t(1,i) - X_t(1,i-1);
+        end
+    dist = 1/100 * dist
+    end
 endfunction
 
-X_t = queue(2,1,30);
-n=[1:100]
-plot(distribution(n))
+disp(size(X_t(1,:),"c"))
+X_t = queue(2,1,100);
+k=[1:size(X_t(1,:),"c")]
+for i = 1:size(X_t(1,:),"c")
+    distr(1,i) = distribution(size(X_t(1,:),"c"))
+end
+disp(distribution(0))
+plot2d2(k,distr)
