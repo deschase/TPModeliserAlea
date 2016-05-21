@@ -76,7 +76,7 @@ function [proba] = probaPratique(X,borneinf)
   tailleMax = max(X(2, :))
   proba = zeros(1, tailleMax + 1)
   for i=1:(tailleMax + 1)
-    proba(i) = integChemin(X, indicatrice(i),borneinf)
+    proba(i) = integChemin(X, indicatrice(i-1),borneinf)
   end
 endfunction
 
@@ -86,7 +86,7 @@ function [integ] = integChemin(X, f, borneinf)
   tpsmax = X(1, nbChangements)
   for i= borneinf:nbChangements
     dt = X(1, i) - X(1, i - 1)
-    integ = integ + (f(X(2, i)) * dt)
+    integ = integ + (f(X(2, i-1)) * dt)
   end
   integ = integ / (tpsmax - borneinf)
 endfunction
@@ -106,7 +106,7 @@ endfunction
 
 
 lambda = 1
-mu = 3
+mu = 2
 
 tpsmin = 1000
 tpsmax = 2000
@@ -121,6 +121,7 @@ disp("variance pratique")
 disp(varPratique(X_t, tpsmin))
 disp("Lois")
 absc = 0:max(X_t(2, :))
+//plot2d2(X_t(1,:),X_t(2,:))
 plot(absc, probaTheorique(lambda, mu, X_t), '--r+')
 plot(absc, probaPratique(X_t, tpsmin), '--mo')
 
@@ -140,6 +141,6 @@ end
 
 client = 50;
 P_n = P^(client);
-disp("Distribution de probabilité de la taille de la fileà l'arrrivée du client nu")
+disp("Distribution de probabilité de la taille de la fileà l arrivée du client numéro 50")
 disp(P_n(1,:)')
 
