@@ -1,7 +1,7 @@
-function [x]=expo(lambda)
+function [x]=unif(lambda)
     rand("uniform");
-    nb = rand()
-    x = -(1/lambda)*log(nb);
+    nb = lambda*rand()
+    x = nb;
 endfunction;
 
 function [X_t]=queue(lambda, mu, tpsmax)
@@ -10,17 +10,17 @@ function [X_t]=queue(lambda, mu, tpsmax)
     i = 2;
     while tps < tpsmax
         if (X_t(2,i-1) == 0.) then
-            temp = expo(lambda);
+            temp = unif(2/lambda);
             tps = tps + temp
             X_t(1,i) = X_t(1,i-1) + temp;
             X_t(2,i) = X_t(2,i-1)+1;
         else
-            temp = expo(lambda + mu);
+            temp = unif(2/(lambda +mu));
             tps = tps + temp
             X_t(1,i) = X_t(1,i-1) + temp;
             rand("uniform");
-            r = rand();
-            if r < lambda/(lambda + mu) then
+            r = (lambda + mu)*rand();
+            if r < lambda then
                 X_t(2,i) = X_t(2,i-1)+1;
             else
                 X_t(2,i) = X_t(2,i-1)-1;
@@ -43,34 +43,17 @@ function [dist] = distribution(n)
     end
 endfunction
 
-function [esp] = espTheorique(lambda, mu)
-  rho = lambda / mu
-  esp = rho / (1 - rho)
-endfunction
-
 function [esp] = espPratique(X)
   esp = integChemin(X, Id)
 endfunction
 
-function [var] = varTheorique(lambda, mu)
-  rho = lambda / mu
-  var = rho / (1 - (rho^2))
-endfunction
 
 function [var] = varPratique(X)
   esp = integChemin(X, Id)
   espXCarre = integChemin(X, carre)
   var = espXCarre - esp^2
 endfunction
-
-function [proba] = probaTheorique(lambda, mu, X)
-  tailleMax = max(X(2, :))
-  proba = zeros(1, tailleMax + 1)
-  rho = lambda / mu
-  for i=1:(tailleMax + 1)
-    proba(i) = (rho ** (i-1)) * (1 - rho)
-  end                      
-endfunction                
+             
                            
 function [proba] = probaPratique(X)
   tailleMax = max(X(2, :))
@@ -108,20 +91,15 @@ endfunction
 lambda = 1
 mu = 2
 
-tpsmax = 2000
+tpsmax = 200
 X_t = queue(lambda, mu, tpsmax);
-disp("espérance théorique")
-disp(espTheorique(lambda, mu))
 disp("espérance pratique")
 disp(espPratique(X_t))
-disp("variance théorique")
-disp(varTheorique(lambda, mu))
 disp("variance pratique")
 disp(varPratique(X_t))
 disp("Lois")
 absc = 0:max(X_t(2, :))
 //plot2d2(X_t(1,:),X_t(2,:))
-plot(absc, probaTheorique(lambda, mu, X_t), '--r+')
 plot(absc, probaPratique(X_t), '--mo')
 
 // Calcul de la probabilité du nombre de personnes dans la file à l'arrivée du client numéro client.
