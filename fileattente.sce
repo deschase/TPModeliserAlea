@@ -1,19 +1,7 @@
 function [x]=expo(lambda)
     rand("uniform");
     nb = rand()
-    x=-(1/lambda)*log(nb);
-endfunction;
-
-function [A_ij]=geninf(lambda,mu,K,i,j)
-    if (j == i+1) then
-        A_ij = lambda;
-    elseif (i == j+1) then
-        A_ij = min(i,K);
-    elseif (i == j) then
-        A_ij = -lambda -min(i,K);
-    else
-        A_ij = 0;
-    end
+    x = -(1/lambda)*log(nb);
 endfunction;
 
 function [X_t]=queue(lambda, mu, tpsmax)
@@ -55,22 +43,13 @@ function [dist] = distribution(n)
     end
 endfunction
 
-//disp(size(X_t(1,:),"c"))
-//X_t = queue(2,1,100);
-//k=[1:size(X_t(1,:),"c")]
-//for i = 1:size(X_t(1,:),"c")
-//    distr(1,i) = distribution(size(X_t(1,:),"c"))
-//end
-//disp(distribution(0))
-//plot2d2(k,distr)
-
 function [esp] = espTheorique(lambda, mu)
   rho = lambda / mu
   esp = rho / (1 - rho)
 endfunction
 
-function [esp] = espPratique(X)
-  esp = integChemin(X, Id)
+function [esp] = espPratique(X, borneinf)
+  esp = integChemin(X, Id, borneinf)
 endfunction
 
 function [var] = varTheorique(lambda, mu)
@@ -78,9 +57,9 @@ function [var] = varTheorique(lambda, mu)
   var = rho / (1 - (rho^2))
 endfunction
 
-function [var] = varPratique(X)
-  esp = integChemin(X, Id)
-  espXCarre = integChemin(X, carre)
+function [var] = varPratique(X,borneinf)
+  esp = integChemin(X, Id, borneinf)
+  espXCarre = integChemin(X, carre, borneinf)
   var = espXCarre - esp^2
 endfunction
 
@@ -89,27 +68,27 @@ function [proba] = probaTheorique(lambda, mu, X)
   proba = zeros(1, tailleMax + 1)
   rho = lambda / mu
   for i=1:(tailleMax + 1)
-    proba(i) = (rho ** i) * (1 - rho)
-  end
-endfunction
-
-function [proba] = probaPratique(X)
+    proba(i) = (rho ** (i-1)) * (1 - rho)
+  end                      
+endfunction                
+                           
+function [proba] = probaPratique(X,borneinf)
   tailleMax = max(X(2, :))
   proba = zeros(1, tailleMax + 1)
   for i=1:(tailleMax + 1)
-    proba(i) = integChemin(X, indicatrice(i))
+    proba(i) = integChemin(X, indicatrice(i),borneinf)
   end
 endfunction
 
-function [integ] = integChemin(X, f)
+function [integ] = integChemin(X, f, borneinf)
   integ = 0
   [nbCols, nbChangements] = size(X)
   tpsmax = X(1, nbChangements)
-  for i=2:nbChangements
+  for i= borneinf:nbChangements
     dt = X(1, i) - X(1, i - 1)
     integ = integ + (f(X(2, i)) * dt)
   end
-  integ = integ / tpsmax
+  integ = integ / (tpsmax - borneinf)
 endfunction
 
 function [res] = Id(x)
@@ -124,19 +103,43 @@ function [ind] = indicatrice(x)
   execstr("function [res] = ind(y); if " + string(x) + " == y then; res = 1; else; res = 0; end; endfunction")
 endfunction
 
+
+
 lambda = 1
-mu = 2
-tpsmax = 1000
+mu = 3
+
+tpsmin = 1000
+tpsmax = 2000
 X_t = queue(lambda, mu, tpsmax);
 disp("espérance théorique")
 disp(espTheorique(lambda, mu))
 disp("espérance pratique")
-disp(espPratique(X_t))
+disp(espPratique(X_t, tpsmin))
 disp("variance théorique")
 disp(varTheorique(lambda, mu))
 disp("variance pratique")
-disp(varPratique(X_t))
+disp(varPratique(X_t, tpsmin))
 disp("Lois")
 absc = 0:max(X_t(2, :))
 plot(absc, probaTheorique(lambda, mu, X_t), '--r+')
-plot(absc, probaPratique(X_t), '--mo')
+plot(absc, probaPratique(X_t, tpsmin), '--mo')
+
+// Calcul de la probabilité du nombre de personnes dans la file à l'arrivée du client numéro client.
+
+numtronc=100
+P = zeros(numtronc,numtronc);
+for i = 1:(numtronc-1)
+    for j = 1:(i+1)
+        if j == 1 then
+            P(i,j) = (mu/(lambda+mu))^(i-j+1)
+        else
+            P(i,j) = (lambda/(lambda+mu))*(mu/(lambda+mu))^(i-j+1)
+        end
+    end
+end
+
+client = 50;
+P_n = P^(client);
+disp("Distribution de probabilité de la taille de la fileà l'arrrivée du client nu")
+disp(P_n(1,:)')
+
